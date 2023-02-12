@@ -9,14 +9,14 @@ struct Isbn {
     country_code: usize,
     publisher_code: usize,
     publication_code: usize,
-    check_digit_10: usize,
+    check_digit_10: String,
     check_digit_13: usize,
 }
 
 impl Isbn {
     fn new(head_code: usize, country_code: usize, publisher_code: usize) -> Self {
         let publication_code = Self::generate_publication_code(country_code, publisher_code);
-        let check_digit_10 = Self::calc_check_digit_13(head_code, country_code, publisher_code, publication_code);
+        let check_digit_10 = Self::calc_check_digit_10(country_code, publisher_code, publication_code);
         let check_digit_13 = Self::calc_check_digit_13(head_code, country_code, publisher_code, publication_code);
         Isbn { head_code, country_code, publisher_code, publication_code, check_digit_10, check_digit_13 }
     }
@@ -60,7 +60,7 @@ impl Isbn {
         for i in (1..isbn_string_without_check_digit.len()).step_by(2) {
             let num_char = isbn_string_without_check_digit.chars().nth(i).unwrap();
             let num = num_char as usize - 48;
-            even_total += num;
+            even_total += num * 3;
         };
 
         // チェックディジットの計算
@@ -73,35 +73,46 @@ impl Isbn {
     }
 
     /// ISBN10のチェックディジットの計算
-    fn calc_check_digit_10(country_code: usize, publisher_code: usize, publication_code: usize) -> usize {
+    fn calc_check_digit_10(country_code: usize, publisher_code: usize, publication_code: usize) -> String {
         let country_str = country_code.to_string();
         let publisher_str = publisher_code.to_string();
         let publication_str = publication_code.to_string();
 
         let isbn_string_without_check_digit = String::new() + &country_str + &publisher_str + &publication_str;
-        // 奇数桁の合計
-        let mut odd_total: usize = 0;
-        for i in (0..isbn_string_without_check_digit.len()).step_by(2) {
-            let num_char = isbn_string_without_check_digit.chars().nth(i).unwrap();
-            let num = num_char as usize - 48;
-            odd_total += num;
-        };
 
-        // 偶数桁の合計
-        let mut even_total: usize = 0;
-        for i in (1..isbn_string_without_check_digit.len()).step_by(2) {
-            let num_char = isbn_string_without_check_digit.chars().nth(i).unwrap();
-            let num = num_char as usize - 48;
-            even_total += num;
-        };
+        let mut total: usize = 0;
+        for i in (0..isbn_string_without_check_digit.len()) {
+            let num_chart = isbn_string_without_check_digit.chars().nth(i).unwrap();
+            let num = num_chart as usize - 48;
+            total += num * (10 - i);
+        }
 
         // チェックディジットの計算
-        let check_digit_surplus = (odd_total + even_total) % 10;
+        let check_digit_surplus = total % 11;
         if (check_digit_surplus == 0) {
-            0
+            String::from("0")
+        } else if check_digit_surplus == 10 {
+            String::from("X")
         } else {
-            10 - check_digit_surplus
+            (11 - check_digit_surplus).to_string()
         }
+    }
+
+    fn create_isbn_10(&self) -> String {
+        String::new()
+            + &self.country_code.to_string()
+            + &self.publisher_code.to_string()
+            + &self.publication_code.to_string()
+            + &self.check_digit_10
+    }
+
+    fn create_isbn_13(&self) -> String {
+        String::new()
+            + &self.head_code.to_string()
+            + &self.country_code.to_string()
+            + &self.publisher_code.to_string()
+            + &self.publication_code.to_string()
+            + &self.check_digit_13.to_string()
     }
 }
 
