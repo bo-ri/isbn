@@ -122,3 +122,71 @@ impl Isbn {
 fn main() {
     println!("Hello, world!");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_pubalication_code() {
+        // 最大桁数の場合(7桁)
+        let country_code_7 = String::from("4");   // 日本
+        let publisher_code_7 = String::from("1");  // 旺文社
+        let publication_code7: String = Isbn::generate_publication_code(&country_code_7, &publisher_code_7);
+        assert!(publication_code7.to_string().len() == 7);
+
+        // 6桁の場合
+        let country_code_6 = String::from("4");
+        let publisher_code_6 = String::from("12");
+        let publication_code6 = Isbn::generate_publication_code(&country_code_6, &publisher_code_6);
+        assert!(publication_code6.len() == 6);
+
+        // 5桁の場合
+        let country_code_5 = String::from("4");
+        let publisher_code_5 = String::from("123");
+        let publication_code5 = Isbn::generate_publication_code(&country_code_5, &publisher_code_5);
+        assert!(publication_code5.len() == 5);
+
+        // 4桁の場合
+        let country_code_4 = String::from("4");
+        let publisher_code_4 = String::from("1234");
+        let publication_code4 = Isbn::generate_publication_code(&country_code_4, &publisher_code_4);
+        assert!(publication_code4.len() == 4);
+    }
+
+    #[test]
+    fn test_calc_check_digit_10() {
+        // 4-10-109205
+        let country_code = String::from("4");
+        let publisher_code = String::from("10");
+        let publication_code = String::from("109205");
+
+        let check_digit_10: String = Isbn::calc_check_digit_10(&country_code, &publisher_code, &publication_code);
+        assert_eq!(check_digit_10, String::from("2"));
+    }
+
+    #[test]
+    fn test_calc_check_digit_13() {
+        // 978-4-7981-7154-8
+        let head_code = String::from("978");
+        let country_code = String::from("4");
+        let publisher_code = String::from("7981");
+        let publication_code = String::from("7154");
+        let expected = String::from("8");
+
+        let check_digit_13: String = Isbn::calc_check_digit_13(&head_code, &country_code, &publisher_code, &publication_code);
+        assert_eq!(check_digit_13, expected);
+    }
+
+    #[test]
+    fn test_create_isbn_10() {
+        let isbn = Isbn::new(String::from("978"), String::from("4"), String::from("10"));
+        assert!(isbn.create_isbn_10().len() == 10);
+    }
+
+    #[test]
+    fn test_create_isbn_13() {
+        let isbn = Isbn::new(String::from("978"), String::from("4"), String::from("10"));
+        assert!(isbn.create_isbn_13().len() == 13);
+    }
+}
