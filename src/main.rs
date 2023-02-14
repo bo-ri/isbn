@@ -43,11 +43,10 @@ impl Isbn {
         if digit_diff == 0 {
             publication_code
         } else {
-            let mut padded_publication_code: String = String::new();
+            let mut padded_publication_code: String = String::from(&publication_code);
             for i in 1..=digit_diff {
-                padded_publication_code = String::from("0") + &publication_code;
+                padded_publication_code = String::from("0") + &padded_publication_code;
             };
-            println!("{}", padded_publication_code);
             padded_publication_code
         }
     }
@@ -95,7 +94,7 @@ impl Isbn {
         let check_digit_surplus = total % 11;
         if (check_digit_surplus == 0) {
             String::from("0")
-        } else if check_digit_surplus == 10 {
+        } else if check_digit_surplus == 1 {
             String::from("X")
         } else {
             (11 - check_digit_surplus).to_string()
@@ -104,19 +103,19 @@ impl Isbn {
 
     fn create_isbn_10(&self) -> String {
         String::new()
-            + &self.country_code.to_string()
-            + &self.publisher_code.to_string()
-            + &self.publication_code.to_string()
+            + &self.country_code
+            + &self.publisher_code
+            + &self.publication_code
             + &self.check_digit_10
     }
 
     fn create_isbn_13(&self) -> String {
         String::new()
-            + &self.head_code.to_string()
-            + &self.country_code.to_string()
-            + &self.publisher_code.to_string()
-            + &self.publication_code.to_string()
-            + &self.check_digit_13.to_string()
+            + &self.head_code
+            + &self.country_code
+            + &self.publisher_code
+            + &self.publication_code
+            + &self.check_digit_13
     }
 }
 
