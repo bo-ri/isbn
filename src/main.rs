@@ -23,6 +23,7 @@ impl Isbn {
 
     /// ISBNの書籍コードをランダムで生成する
     /// 書籍コードの桁数は10 - (国コード + 出版社コード + チェックディジット) で求められる
+    /// 必要な桁数に合わせて足りない桁数は0パディングする
     fn generate_publication_code(country_code: &String, publisher_code: &String) -> String {
         let country_code_digit = country_code.len();
         let publisher_code_digit = publisher_code.len();
@@ -36,7 +37,19 @@ impl Isbn {
         let max_publication_code: usize = max_publication_code_string.parse().unwrap();
 
         let mut rng = rand::thread_rng();
-        rng.gen_range(0..max_publication_code).to_string()
+        let publication_code = rng.gen_range(0..max_publication_code).to_string();
+        let digit_diff: usize = (max_publication_code_string.len() - 1) - publication_code.len();
+
+        if digit_diff == 0 {
+            publication_code
+        } else {
+            let mut padded_publication_code: String = String::new();
+            for i in 1..=digit_diff {
+                padded_publication_code = String::from("0") + &publication_code;
+            };
+            println!("{}", padded_publication_code);
+            padded_publication_code
+        }
     }
 
     /// ISBN13のチェックディジットの計算
