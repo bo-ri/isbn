@@ -5,27 +5,27 @@ use std::fs;
 use rand::Rng;
 
 struct Isbn {
-    head_code: usize,
-    country_code: usize,
-    publisher_code: usize,
-    publication_code: usize,
+    head_code: String,
+    country_code: String,
+    publisher_code: String,
+    publication_code: String,
     check_digit_10: String,
-    check_digit_13: usize,
+    check_digit_13: String,
 }
 
 impl Isbn {
-    fn new(head_code: usize, country_code: usize, publisher_code: usize) -> Self {
-        let publication_code = Self::generate_publication_code(country_code, publisher_code);
-        let check_digit_10 = Self::calc_check_digit_10(country_code, publisher_code, publication_code);
-        let check_digit_13 = Self::calc_check_digit_13(head_code, country_code, publisher_code, publication_code);
+    fn new(head_code: String, country_code: String, publisher_code: String) -> Self {
+        let publication_code = Self::generate_publication_code(&country_code, &publisher_code);
+        let check_digit_10 = Self::calc_check_digit_10(&country_code, &publisher_code, &publication_code);
+        let check_digit_13 = Self::calc_check_digit_13(&head_code, &country_code, &publisher_code, &publication_code);
         Isbn { head_code, country_code, publisher_code, publication_code, check_digit_10, check_digit_13 }
     }
 
     /// ISBNの書籍コードをランダムで生成する
     /// 書籍コードの桁数は10 - (国コード + 出版社コード + チェックディジット) で求められる
-    fn generate_publication_code(country_code: usize, publisher_code: usize) -> usize {
-        let country_code_digit = country_code.to_string().len();
-        let publisher_code_digit = publisher_code.to_string().len();
+    fn generate_publication_code(country_code: &String, publisher_code: &String) -> String {
+        let country_code_digit = country_code.len();
+        let publisher_code_digit = publisher_code.len();
         let publication_code_digit = 10 - (country_code_digit + publisher_code_digit + 1);
 
         // 書籍コードの桁数がわかったので、桁数+1分の100...の文字列を作る
@@ -36,17 +36,12 @@ impl Isbn {
         let max_publication_code: usize = max_publication_code_string.parse().unwrap();
 
         let mut rng = rand::thread_rng();
-        rng.gen_range(0..max_publication_code)
+        rng.gen_range(0..max_publication_code).to_string()
     }
 
     /// ISBN13のチェックディジットの計算
-    fn calc_check_digit_13(head_code: usize, country_code: usize, publisher_code: usize, publication_code: usize) -> usize {
-        let head_str = head_code.to_string();
-        let country_str = country_code.to_string();
-        let publisher_str = publisher_code.to_string();
-        let publication_str = publication_code.to_string();
-
-        let isbn_string_without_check_digit = String::new() + &head_str + &country_str + &publisher_str + &publication_str;
+    fn calc_check_digit_13(head_code: &String, country_code: &String, publisher_code: &String, publication_code: &String) -> String {
+        let isbn_string_without_check_digit = String::new() + &head_code + &country_code + &publisher_code + &publication_code;
         // 奇数桁の合計
         let mut odd_total: usize = 0;
         for i in (0..isbn_string_without_check_digit.len()).step_by(2) {
@@ -66,19 +61,15 @@ impl Isbn {
         // チェックディジットの計算
         let check_digit_surplus = (odd_total + even_total) % 10;
         if check_digit_surplus == 0 {
-            0
+            String::from("0")
         } else {
-            10 - check_digit_surplus
+            (10 - check_digit_surplus).to_string()
         }
     }
 
     /// ISBN10のチェックディジットの計算
-    fn calc_check_digit_10(country_code: usize, publisher_code: usize, publication_code: usize) -> String {
-        let country_str = country_code.to_string();
-        let publisher_str = publisher_code.to_string();
-        let publication_str = publication_code.to_string();
-
-        let isbn_string_without_check_digit = String::new() + &country_str + &publisher_str + &publication_str;
+    fn calc_check_digit_10(country_code: &String, publisher_code: &String, publication_code: &String) -> String {
+        let isbn_string_without_check_digit = String::new() + &country_code + &publisher_code + &publication_code;
 
         let mut total: usize = 0;
         for i in (0..isbn_string_without_check_digit.len()) {
