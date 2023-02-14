@@ -31,7 +31,7 @@ impl Isbn {
 
         // 書籍コードの桁数がわかったので、桁数+1分の100...の文字列を作る
         let mut max_publication_code_string = String::from("1");
-        for i in 1..=publication_code_digit {
+        for _ in 1..=publication_code_digit {
             max_publication_code_string.push_str("0");
         };
         let max_publication_code: usize = max_publication_code_string.parse().unwrap();
@@ -44,7 +44,7 @@ impl Isbn {
             publication_code
         } else {
             let mut padded_publication_code: String = String::from(&publication_code);
-            for i in 1..=digit_diff {
+            for _ in 1..=digit_diff {
                 padded_publication_code = String::from("0") + &padded_publication_code;
             };
             padded_publication_code
@@ -92,7 +92,7 @@ impl Isbn {
 
         // チェックディジットの計算
         let check_digit_surplus = total % 11;
-        if (check_digit_surplus == 0) {
+        if check_digit_surplus == 0 {
             String::from("0")
         } else if check_digit_surplus == 1 {
             String::from("X")
