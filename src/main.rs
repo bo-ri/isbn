@@ -4,6 +4,7 @@ use std::error::Error;
 use std::fs;
 use rand::Rng;
 
+#[derive(Debug)]
 struct Isbn {
     head_code: String,
     country_code: String,
@@ -119,8 +120,30 @@ impl Isbn {
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct Publisher {
+    code: String,
+    name: String,
+}
+
+fn read_csv(file_path: String) -> Result<Vec<Publisher>, Box<dyn Error>>{
+    let mut publisher_list = Vec::new();
+    let csv_text = fs::read_to_string(file_path)?;
+    let mut rdr = csv::Reader::from_reader(csv_text.as_bytes());
+    for result in rdr.records() {
+        let record = result?.deserialize(None)?;
+        publisher_list.push(record);
+    }
+    Ok(publisher_list)
+}
+
 fn main() {
-    println!("Hello, world!");
+    let publisher_list = read_csv("../csv/isbn978.csv".to_string()).unwrap();
+    let mut rng = rand::thread_rng();
+    let publisher_code_index = rng.gen_range(0..publisher_list.len());
+
+    let isbn: Isbn = Isbn::new(String::from("978"), String::from("4"), publisher_list[publisher_code_index].code.to_string());
+    println!("{:?}", isbn.create_isbn_10());
 }
 
 #[cfg(test)]
