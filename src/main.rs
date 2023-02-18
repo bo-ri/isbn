@@ -137,13 +137,27 @@ fn read_csv(file_path: String) -> Result<Vec<Publisher>, Box<dyn Error>>{
     Ok(publisher_list)
 }
 
-fn main() {
-    let publisher_list = read_csv("../csv/isbn978.csv".to_string()).unwrap();
+async fn get_publication(client: reqwest::Client, isbn: &String) -> reqwest::Result<String> {
+    let response = client.get("https://iss.ndl.go.jp/api/opensearch?isbn=".to_string() + &isbn)
+        .send()
+        .await?
+        .text()
+        .await?;
+    Ok(response)
+}
+
+#[tokio::main]
+async fn main() {
+    let publisher_list = read_csv("./csv/isbn978.csv".to_string()).unwrap();
     let mut rng = rand::thread_rng();
     let publisher_code_index = rng.gen_range(0..publisher_list.len());
 
     let isbn: Isbn = Isbn::new(String::from("978"), String::from("4"), publisher_list[publisher_code_index].code.to_string());
     println!("{:?}", isbn.create_isbn_10());
+
+    // reqwest
+    let client = reqwest::Client::new();
+    let response_xml = get_publication(client, &isbn.create_isbn_10()).await.unwrap();
 }
 
 #[cfg(test)]
