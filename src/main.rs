@@ -138,7 +138,7 @@ fn read_csv(file_path: String) -> Result<Vec<Publisher>, Box<dyn Error>>{
     Ok(publisher_list)
 }
 
-async fn get_publication(client: reqwest::Client, isbn: &String) -> reqwest::Result<String> {
+async fn get_publication(client: &reqwest::Client, isbn: &String) -> reqwest::Result<String> {
     let response = client.get("https://iss.ndl.go.jp/api/opensearch?cnt=1&isbn=".to_string() + &isbn)
         .send()
         .await?
@@ -149,25 +149,39 @@ async fn get_publication(client: reqwest::Client, isbn: &String) -> reqwest::Res
 
 #[tokio::main]
 async fn main() {
-    let publisher_list = read_csv("./csv/isbn978.csv".to_string()).unwrap();
-    let mut rng = rand::thread_rng();
-    let publisher_code_index = rng.gen_range(0..publisher_list.len());
-
-    let isbn: Isbn = Isbn::new(String::from("978"), String::from("4"), publisher_list[publisher_code_index].code.to_string());
-
-    // reqwest
     let client = reqwest::Client::new();
-    let response_xml = get_publication(client, &isbn.create_isbn_10()).await.unwrap();
+    let mut counter = 0;
+    loop {
+        if counter > 10 {
+            println!("cannot find any books in 10 times");
+            break;
+        }
+        let publisher_list = read_csv("./csv/isbn978.csv".to_string()).unwrap();
+        let mut rng = rand::thread_rng();
+        let publisher_code_index = rng.gen_range(0..publisher_list.len());
 
-    // parse xml
-    let element = Element::parse(response_xml.as_bytes()).unwrap();
-    let channel = element.get_child("channel").expect("cannot find channel in xml tree");
-    let totalResults: usize = (channel.get_child("totalResults").expect("cannot find totalResults in xml tree"))
-        .children[0]
-        .as_text()
-        .unwrap()
-        .parse()
-        .unwrap();
+        let isbn: Isbn = Isbn::new(String::from("978"), String::from("4"), publisher_list[publisher_code_index].code.to_string());
+
+        // reqwest
+        let response_xml = get_publication(&client, &isbn.create_isbn_10()).await.unwrap();
+
+        // parse xml
+        let element = Element::parse(response_xml.as_bytes()).unwrap();
+        let channel = element.get_child("channel").expect("cannot find channel in xml tree");
+        let total_results: usize = (channel.get_child("totalResults").expect("cannot find totalResults in xml tree"))
+            .children[0]
+            .as_text()
+            .unwrap()
+            .parse()
+            .unwrap();
+        if total_results > 0 {
+            println!("https://booklog.jp/item/1/{}", isbn.create_isbn_10());
+            break;
+        }
+        println!("{} ... not found", isbn.create_isbn_10());
+        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        counter += 1;
+    };
 }
 
 #[cfg(test)]
