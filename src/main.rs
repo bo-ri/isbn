@@ -3,6 +3,7 @@ use serde::Deserialize;
 use std::error::Error;
 use std::fs;
 use rand::Rng;
+use xmltree::Element;
 
 #[derive(Debug)]
 struct Isbn {
@@ -138,7 +139,7 @@ fn read_csv(file_path: String) -> Result<Vec<Publisher>, Box<dyn Error>>{
 }
 
 async fn get_publication(client: reqwest::Client, isbn: &String) -> reqwest::Result<String> {
-    let response = client.get("https://iss.ndl.go.jp/api/opensearch?isbn=".to_string() + &isbn)
+    let response = client.get("https://iss.ndl.go.jp/api/opensearch?cnt=1&isbn=".to_string() + &isbn)
         .send()
         .await?
         .text()
@@ -153,11 +154,20 @@ async fn main() {
     let publisher_code_index = rng.gen_range(0..publisher_list.len());
 
     let isbn: Isbn = Isbn::new(String::from("978"), String::from("4"), publisher_list[publisher_code_index].code.to_string());
-    println!("{:?}", isbn.create_isbn_10());
 
     // reqwest
     let client = reqwest::Client::new();
     let response_xml = get_publication(client, &isbn.create_isbn_10()).await.unwrap();
+
+    // parse xml
+    let element = Element::parse(response_xml.as_bytes()).unwrap();
+    let channel = element.get_child("channel").expect("cannot find channel in xml tree");
+    let totalResults: usize = (channel.get_child("totalResults").expect("cannot find totalResults in xml tree"))
+        .children[0]
+        .as_text()
+        .unwrap()
+        .parse()
+        .unwrap();
 }
 
 #[cfg(test)]
