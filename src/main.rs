@@ -163,7 +163,7 @@ async fn main() {
         let isbn: Isbn = Isbn::new(String::from("978"), String::from("4"), publisher_list[publisher_code_index].code.to_string());
 
         // reqwest
-        let response_xml = get_publication(&client, &isbn.create_isbn_10()).await.unwrap();
+        let response_xml = get_publication(&client, &isbn.create_isbn_13()).await.unwrap();
 
         // parse xml
         let element = Element::parse(response_xml.as_bytes()).unwrap();
@@ -175,10 +175,11 @@ async fn main() {
             .parse()
             .unwrap();
         if total_results > 0 {
+            // booklogのパスパラメータはISBN10
             println!("https://booklog.jp/item/1/{}", isbn.create_isbn_10());
             break;
         }
-        println!("{} ... not found", isbn.create_isbn_10());
+        println!("{} ... not found", isbn.create_isbn_13());
         tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
         counter += 1;
     };
