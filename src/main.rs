@@ -1,7 +1,6 @@
 use csv;
 use serde::Deserialize;
 use std::error::Error;
-use std::fs;
 use rand::Rng;
 use xmltree::Element;
 
@@ -127,9 +126,10 @@ struct Publisher {
     name: String,
 }
 
-fn read_csv(file_path: String) -> Result<Vec<Publisher>, Box<dyn Error>>{
+fn read_csv() -> Result<Vec<Publisher>, Box<dyn Error>>{
     let mut publisher_list = Vec::new();
-    let csv_text = fs::read_to_string(file_path)?;
+    // let csv_text = fs::read_to_string(file_path)?;
+    let csv_text = include_str!("../csv/isbn978.csv");
     let mut rdr = csv::Reader::from_reader(csv_text.as_bytes());
     for result in rdr.records() {
         let record = result?.deserialize(None)?;
@@ -156,7 +156,7 @@ async fn main() {
             println!("cannot find any books in 10 times");
             break;
         }
-        let publisher_list = read_csv("./csv/isbn978.csv".to_string()).unwrap();
+        let publisher_list = read_csv().unwrap();
         let mut rng = rand::thread_rng();
         let publisher_code_index = rng.gen_range(0..publisher_list.len());
 
