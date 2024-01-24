@@ -129,7 +129,7 @@ struct Publisher {
 fn read_csv() -> Result<Vec<Publisher>, Box<dyn Error>>{
     let mut publisher_list = Vec::new();
     // let csv_text = fs::read_to_string(file_path)?;
-    let csv_text = include_str!("../csv/isbn978.csv");
+    let csv_text = include_str!("../csv/isbn.csv");
     let mut rdr = csv::Reader::from_reader(csv_text.as_bytes());
     for result in rdr.records() {
         let record = result?.deserialize(None)?;
